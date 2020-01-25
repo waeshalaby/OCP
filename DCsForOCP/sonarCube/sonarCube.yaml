@@ -1,0 +1,91 @@
+# 1-  you need to create sonarqube namespace on your OCP
+# 2- need to build sonarCube base image OCP\OCP-Base-Images\Sonar-Cube with name:test-sonarqube and push it to OC docker registry
+# to use it on sonarcube DC
+# 3- create sonarqube config map OCP/DCsForOCP/sonarCube/sonarConfigMap.yaml 
+# 4-apply postgresql DC to use it as a sonarCube database
+# 5-apply sonarCubeRouter to expose sonarcube and use it with jenkins plugin 
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftWebConsole
+  generation: 
+  labels:
+    app: sonarqube
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  replicas: 1
+  selector:
+    app: sonarqube
+    deploymentconfig: sonarqube
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftWebConsole
+      creationTimestamp: null
+      labels:
+        app: sonarqube
+        deploymentconfig: sonarqube
+    spec:
+      containers:
+        - env:
+            - name: sonar.jdbc.url
+              value: 'jdbc:postgresql://postgres:5432/sonar'
+            - name: sonar.jdbc.username
+              value: sonar
+            - name: sonar.jdbc.password
+              value: sonar
+            - name: sonar.log.level
+            - name: SONARQUBE_JDBC_URL
+              value: 'jdbc:postgresql://postgres:5432/sonar'
+          image: >-
+            docker-registry.default.svc:5000/sonarqube/test-sonarqube@sha256:7399ad5151e6b1678f5baf25d2bf7a52a4daf7b2656f3e38aba5789f853e911b
+          imagePullPolicy: Always
+          name: sonarqube
+          ports:
+            - containerPort: 9000
+              protocol: TCP
+          resources:
+            limits:
+              cpu: '2'
+              memory: 2G
+            requests:
+              cpu: '1'
+              memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /opt/sonarqube/conf
+              name: volume-m6k5b
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: sonarqube
+          name: volume-m6k5b
+  test: false
+  triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - sonarqube
+        from:
+          kind: ImageStreamTag
+          name: 'test-sonarqube:latest'
+          namespace: sonarqube
+        lastTriggeredImage: >-
+          docker-registry.default.svc:5000/sonarqube/test-sonarqube@sha256:7399ad5151e6b1678f5baf25d2bf7a52a4daf7b2656f3e38aba5789f853e911b
+      type: ImageChange
+    - type: ConfigChange
+

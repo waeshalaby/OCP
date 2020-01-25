@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: kibana-nodeport
+  namespace: website-elk
+spec:
+  host: 
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: elk-kibana-nodeport
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress:
+    - conditions:
+        - lastTransitionTime:
+          message: host not in the allowed list of domains
+          reason: RouteNotAdmitted
+          status: 'False'
+          type: Admitted
+      host: kibana2-website-elk-app.app.openshift.vodafone.com.eg
+      routerName: router
+      wildcardPolicy: None
+    - conditions:
+        - lastTransitionTime: '2018-07-31T12:10:14Z'
+          message: host in list of denied domains
+          reason: RouteNotAdmitted
+          status: 'False'
+          type: Admitted
+      host: kibana2-website-elk-app.app.openshift.vodafone.com.eg
+      routerName: router-web
+      wildcardPolicy: None
+    - conditions:
+        - lastTransitionTime: '2018-07-31T12:10:14Z'
+          status: 'True'
+          type: Admitted
+      host: kibana-nodeport-website-elk-app.app.openshift.vodafone.com.eg
+      routerName: router-app
+      wildcardPolicy: None

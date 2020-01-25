@@ -1,0 +1,26 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+  labels:
+    app: sonarqube
+  name: sonarqube1
+  namespace: sonarqube
+spec:
+  host: 
+  port:
+    targetPort: 9000-tcp
+  to:
+    kind: Service
+    name: sonarqube
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress:
+    - conditions:
+        - lastTransitionTime:
+          status: 'True'
+          type: Admitted
+      host: sonarqube-sonarqube.devops.openshift.vodafone.com.eg
+      routerName: router
+      wildcardPolicy: None

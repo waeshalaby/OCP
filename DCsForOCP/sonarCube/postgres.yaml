@@ -1,0 +1,63 @@
+# 1- create PV on openshift with 50 GB it will be attached @ /var/lib/postgresql/data/
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  generation: 
+  labels:
+    app: postgres
+  name: postgres
+  namespace: sonarqube
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: postgres
+    deploymentconfig: postgres
+  strategy:
+    activeDeadlineSeconds: 21600
+    customParams: {}
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        app: postgres
+        deploymentconfig: postgres
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          image: >-
+            docker-registry.default.svc:5000/sonarqube/postgres@sha256:d9bc6fd608a7e8e9900f2e5613c83531eba2930d6d267b0537b710a5f16c433c
+          imagePullPolicy: Always
+          name: postgres
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data/
+              name: volume-6af6b
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: volume-6af6b
+          persistentVolumeClaim:
+            claimName: postgres
+  test: false
+  

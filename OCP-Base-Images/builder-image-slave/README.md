@@ -1,0 +1,1 @@
+Jenkins slave for image management based on Skopeo
